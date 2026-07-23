@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { RESTAURANTS, Restaurant, MenuItem } from '@/data/restaurants';
-import Logo from '@/components/Logo';
 
 const InteractiveMap = dynamic(() => import('@/components/InteractiveMap'), {
   ssr: false,
@@ -302,18 +301,39 @@ export default function GhostBitesHome() {
   // =========================================================================
   return (
     <main className="min-h-screen text-purple-50 pb-28 select-none font-sans">
-      {/* CABEÇALHO PRINCIPAL */}
-      <header className="pt-5 pb-4 px-4 border-b border-purple-900/40 sticky top-0 bg-[#090415]/95 backdrop-blur-md z-30 shadow-2xl">
-        <div className="max-w-lg mx-auto flex items-center justify-between">
+      {/* CABEÇALHO PRINCIPAL REFORMULADO */}
+      <header className="py-4 px-4 border-b border-purple-900/40 sticky top-0 bg-[#090415]/95 backdrop-blur-md z-30 shadow-2xl">
+        <div className="max-w-lg mx-auto flex items-center justify-between relative">
           
-          <div onClick={() => setSelectedRestaurant(null)} className="cursor-pointer">
-            <Logo />
+          {/* LOGO CENTRALIZADA COM EFEITO NEON */}
+          <div 
+            onClick={() => setSelectedRestaurant(null)} 
+            className="cursor-pointer flex items-center gap-3 group mx-auto sm:mx-0"
+          >
+            <div className="relative flex items-center justify-center">
+              {/* Brilho neon atrás da logo */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl blur-md opacity-70 group-hover:opacity-100 transition duration-300"></div>
+              
+              <div className="relative bg-[#090415] border border-purple-500/40 rounded-2xl p-2 shadow-xl">
+                <img
+                  src="/logo.png"
+                  alt="GhostBites Logo"
+                  className="h-10 w-auto object-contain drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]"
+                />
+              </div>
+            </div>
+
+            <div className="text-left">
+              <h1 className="text-lg font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-pink-400 to-purple-200 leading-tight">
+                GHOSTBITES
+              </h1>
+            </div>
           </div>
 
           {/* BOTÃO DA SACOLA EM DESTAQUE NO CANTO DIREITO */}
           <button
             onClick={() => setCurrentView('cart')}
-            className={`group relative flex items-center gap-2.5 px-4 py-2.5 rounded-2xl border transition-all duration-300 shadow-xl ${
+            className={`group relative flex items-center gap-2.5 px-3.5 py-2 rounded-2xl border transition-all duration-300 shadow-xl ${
               totalItems > 0
                 ? 'bg-gradient-to-r from-purple-600 via-fuchsia-600 to-violet-600 border-purple-400/80 text-white shadow-purple-950/80 animate-pulse glow-purple-sm'
                 : 'bg-[#130a2a] border border-purple-800/50 text-purple-300 hover:border-purple-500/60 hover:text-white'
