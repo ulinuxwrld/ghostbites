@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Plus_Jakarta_Sans } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/react';
 import './globals.css';
@@ -9,9 +9,26 @@ const jakarta = Plus_Jakarta_Sans({
   variable: '--font-jakarta',
 });
 
+// Configuração da cor da barra de status no navegador/celular
+export const viewport: Viewport = {
+  themeColor: '#090415',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+};
+
+// Metadados do App e PWA
 export const metadata: Metadata = {
   title: 'GhostBites - Delivery da Mente',
   description: 'Simulador de delivery para controle de ansiedade e economia.',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'GhostBites',
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export default function RootLayout({
