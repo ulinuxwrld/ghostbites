@@ -7,9 +7,9 @@ import { RESTAURANTS, Restaurant, MenuItem } from '@/data/restaurants';
 const InteractiveMap = dynamic(() => import('@/components/InteractiveMap'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-64 rounded-2xl flex flex-col items-center justify-center gap-2 text-xs text-purple-300 border border-purple-800/40 glow-purple-sm bg-purple-950/30">
+    <div className="w-full h-full min-h-[256px] rounded-2xl flex flex-col items-center justify-center gap-2 text-xs text-purple-300 border border-purple-800/40 glow-purple-sm bg-purple-950/30">
       <span className="text-2xl animate-bounce">🛵</span>
-      <span className="font-semibold text-[11px]">Iniciando GPS do Cleiton...</span>
+      <span className="font-semibold text-[11px]">Sintonizando GPS do Cleiton...</span>
     </div>
   ),
 });
@@ -226,8 +226,8 @@ export default function GhostBitesHome() {
             </span>
           </div>
 
-          {/* CONTAINER DO MAPA DE TAMANHO EQUILIBRADO */}
-          <div className="w-full h-64 rounded-2xl overflow-hidden border border-purple-800/50 shadow-xl shadow-purple-950/80 relative bg-[#090415]">
+          {/* CONTAINER DO MAPA OTIMIZADO PARA AVALIAR O TAMANHO REAL DA DIV */}
+          <div className="w-full h-64 min-h-[256px] rounded-2xl overflow-hidden border border-purple-800/50 shadow-xl shadow-purple-950/80 relative bg-[#090415]">
             <InteractiveMap progress={progress} />
           </div>
 
