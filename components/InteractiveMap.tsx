@@ -5,7 +5,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Fix essencial para os ícones padrão do Leaflet no Next.js
+// Corrigir ícones padrão do Leaflet no Next.js
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -13,7 +13,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Ícone customizado da moto do Cleiton
+// Ícone da moto do Cleiton
 const cleitonIcon = L.icon({
   iconUrl: 'https://cdn-icons-png.flaticon.com/512/2972/2972185.png',
   iconSize: [38, 38],
@@ -21,7 +21,7 @@ const cleitonIcon = L.icon({
   popupAnchor: [0, -10],
 });
 
-// Componente para recalcular e recentralizar o mapa suavemente
+// Helper essencial que resolve o problema do mapa cinza/sem altura
 function MapController({ lat, lng }: { lat: number; lng: number }) {
   const map = useMap();
 
@@ -39,7 +39,7 @@ function MapController({ lat, lng }: { lat: number; lng: number }) {
 }
 
 export default function InteractiveMap({ progress }: { progress: number }) {
-  // Localização inicial padrão (Santos - SP)
+  // Posição inicial em Santos - SP
   const [userLocation, setUserLocation] = useState<[number, number]>([-23.9608, -46.3339]);
 
   useEffect(() => {
@@ -61,7 +61,7 @@ export default function InteractiveMap({ progress }: { progress: number }) {
   const cleitonLng = userLocation[1] + (1 - progress / 100) * startOffset;
 
   return (
-    <div style={{ width: '100%', height: '100%', minHeight: '260px', position: 'relative' }}>
+    <div style={{ width: '100%', height: '100%', minHeight: '256px', position: 'relative' }}>
       <MapContainer
         center={userLocation}
         zoom={15}
