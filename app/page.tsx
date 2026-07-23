@@ -35,6 +35,34 @@ const CATEGORIES = [
   { name: 'Churrasco', icon: '🥩', desc: 'Carnes defumadas' },
 ];
 
+// BANCO DE FRASES VARIADAS DO CLEITON
+const CLEITON_MESSAGES = {
+  step1: [
+    "Sua sacola veio cheia de intenção. Enquanto eu corto as ruas até aí, me diz: a fome era real ou o cérebro só queria um estímulo fácil?",
+    "Liguei a Biz! Antes de eu acelerar: você quer mesmo esse pedido ou só tá procurando uma recompensa rápida pro seu dia cansativo?",
+    "Capacete ajustado! O motor tá rodando, mas a pergunta fica: essa compra é fome, tédio ou só hábito automático de abrir o app?",
+    "Engatei a primeira! Reparou como a ansiedade faz a gente querer comprar qualquer coisa pra sentir aquele 'alívio' instantâneo?",
+  ],
+  step2: [
+    "Passei pelo sinal vermelho da ansiedade. Reparou como a vontade de gastar passa rápido se você espera só 5 minutos?",
+    "Cortando o trânsito da dopamina! Sabe o que é doido? A antecipação de comprar costuma dar mais prazer do que a própria comida.",
+    "Curva fechada na avenida do impulso! Respira fundo. O carrinho tá cheio, mas sua conta bancária agradece o freio de mão.",
+    "Desviei de um buraco na pista! A mesma paciência que exige o trânsito é a que a gente precisa pra não gastar sem pensar.",
+  ],
+  step3: [
+    "Tô buzinando aqui fora! Respira fundo. O cheiro da comida era ILUSÃO, mas a economia de hoje é 100% REAL no seu bolso.",
+    "Encostei na calçada! O sabor dura 10 minutos, mas a satisfação de ter segurado o seu dinheiro dura a semana inteira.",
+    "Cheguei na sua rua! Dá duas buzinadas pro seu autocontrole. Você acabou de vencer mais uma batalha contra o impulso!",
+    "Luz de freio acesa! A entrega tá na porta. Você trocou uma satisfação passageira por tranquilidade financeira verdadeira.",
+  ],
+  step4: [
+    "Valeu pelo pedido! O dinheiro continua na sua conta e você dominou o impulso. Até a próxima corrida!",
+    "Corrida finalizada com sucesso! Zero reais gastos e 100% de paz de espírito. Essa foi uma grande vitória!",
+    "Entrega concluída! Mais uma vez você provou que quem manda nas suas escolhas é você, não o algoritmo. Orgulho!",
+    "Chave desligada! Seu bolso tá intacto e seu cérebro aprendeu a esperar. Te vejo na próxima economia!",
+  ],
+};
+
 export default function GhostBitesHome() {
   const [currentView, setCurrentView] = useState<AppView>('browse');
   const [selectedCategory, setSelectedCategory] = useState<string>('Todos');
@@ -45,6 +73,14 @@ export default function GhostBitesHome() {
 
   const [deliveryStep, setDeliveryStep] = useState(1);
   const [progress, setProgress] = useState(0);
+
+  // ESTADO PARA ARMAZENAR AS FRASES DA CORRIDA ATUAL
+  const [currentMessages, setCurrentMessages] = useState({
+    step1: CLEITON_MESSAGES.step1[0],
+    step2: CLEITON_MESSAGES.step2[0],
+    step3: CLEITON_MESSAGES.step3[0],
+    step4: CLEITON_MESSAGES.step4[0],
+  });
 
   const addToCart = (item: MenuItem) => {
     setCart((prev) => {
@@ -72,8 +108,19 @@ export default function GhostBitesHome() {
     return cart.find((i) => i.item.id === itemId)?.quantity || 0;
   };
 
+  const getRandomItem = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
+
   const handleConfirmOrder = () => {
     if (cart.length === 0) return;
+
+    // Sorteia frases novas para cada etapa desta corrida
+    setCurrentMessages({
+      step1: getRandomItem(CLEITON_MESSAGES.step1),
+      step2: getRandomItem(CLEITON_MESSAGES.step2),
+      step3: getRandomItem(CLEITON_MESSAGES.step3),
+      step4: getRandomItem(CLEITON_MESSAGES.step4),
+    });
+
     setCurrentView('delivery');
     setDeliveryStep(1);
     setProgress(5);
@@ -146,7 +193,7 @@ export default function GhostBitesHome() {
               <>
                 <h3 className="font-bold text-purple-300 text-sm">1. Cleiton ligou a Biz...</h3>
                 <p className="text-xs text-purple-200/80 leading-relaxed">
-                  "Sua sacola veio cheia de intenção. Enquanto eu corto as ruas até aí, me diz: a fome era real ou o cérebro só queria um estímulo fácil?"
+                  "{currentMessages.step1}"
                 </p>
               </>
             )}
@@ -155,7 +202,7 @@ export default function GhostBitesHome() {
               <>
                 <h3 className="font-bold text-amber-300 text-sm">2. Dobrando a esquina dos impulsos...</h3>
                 <p className="text-xs text-purple-200/80 leading-relaxed">
-                  "Passei pelo sinal vermelho da ansiedade. Reparou como a vontade de gastar passa rápido se você espera 5 minutos?"
+                  "{currentMessages.step2}"
                 </p>
               </>
             )}
@@ -164,7 +211,7 @@ export default function GhostBitesHome() {
               <>
                 <h3 className="font-bold text-purple-400 text-sm">3. Cleiton encostou na sua rua!</h3>
                 <p className="text-xs text-purple-200/80 leading-relaxed">
-                  "Tô buzinando aqui fora! Respira fundo. O cheiro da comida era ILUSÃO, mas a economia de hoje é 100% REAL no seu bolso."
+                  "{currentMessages.step3}"
                 </p>
               </>
             )}
@@ -173,7 +220,7 @@ export default function GhostBitesHome() {
               <>
                 <h3 className="font-bold text-emerald-400 text-sm">4. Pedido Concluído com Sucesso! ✨</h3>
                 <p className="text-xs text-purple-200/80 leading-relaxed italic">
-                  "Valeu pelo pedido! O dinheiro continua na sua conta e você dominou o impulso. Até a próxima corrida!"
+                  "{currentMessages.step4}"
                 </p>
               </>
             )}
