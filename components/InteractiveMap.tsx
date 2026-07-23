@@ -1,155 +1,86 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-interface InteractiveMapProps {
-  progress: number;
+// Ícone customizado da moto do Cleiton
+const cleitonIcon = L.icon({
+  iconUrl: 'https://cdn-icons-png.flaticon.com/512/2972/2972185.png',
+  iconSize: [38, 38],
+  iconAnchor: [19, 19],
+  popupAnchor: [0, -10],
+});
+
+// Componente auxiliar para centralizar o mapa na localização do usuário
+function RecenterAutomap({ lat, lng }: { lat: number; lng: number }) {
+  const map = useMap();
+  useEffect(() => {
+    map.flyTo([lat, lng], 15, { duration: 1.5 });
+  }, [lat, lng, map]);
+  return null;
 }
 
-export default function InteractiveMap({ progress }: InteractiveMapProps) {
-  const mapRef = useRef<L.Map | null>(null);
-  const mapContainerRef = useRef<HTMLDivElement>(null);
-  const markerRef = useRef<L.Marker | null>(null);
+export default function InteractiveMap({ progress }: { progress: number }) {
+  // Posição inicial padrão (Santos - SP) como reserva/fallback
+  const [userLocation, setUserLocation] = useState<[number, number]>([-23.9608, -46.3339]);
+  const [geoError, setGeoError] = useState<string | null>(null);
 
-  // Coordenadas base do usuário (Padrão: Santos/SP caso o GPS seja negado)
-  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number }>({
-    lat: -23.9631,
-    lng: -46.3323,
-  });
-
-  // Tenta capturar a localização real do usuário
   useEffect(() => {
-    if ('geolocation' in navigator) {
+    // Tenta capturar a localização real do dispositivo do testador
+    if (typeof window !== 'undefined' && 'geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setUserCoords({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
+          const { latitude, longitude } = position.coords;
+          setUserLocation([latitude, longitude]);
         },
         (error) => {
-          console.warn('Permissão de GPS negada ou indisponível, usando fallback:', error);
+          console.warn('Geolocalização não autorizada ou indisponível:', error.message);
+          setGeoError('GPS não detectado. Exibindo rota demonstrativa.');
         },
-        { enableHighAccuracy: true, timeout: 10000 }
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        }
       );
     }
   }, []);
 
-  // Ponto de partida do Cleiton gerado dinamicamente (~1.5km de distância do usuário)
-  const START_LAT = userCoords.lat - 0.010;
-  const START_LNG = userCoords.lng - 0.020;
+  // Simulação: Cleiton começa a ~800m de distância do usuário e vai se aproximando
+  const startOffset = 0.008;
+  const cleitonLat = userLocation[0] + (1 - progress / 100) * startOffset;
+  const cleitonLng = userLocation[1] + (1 - progress / 100) * startOffset;
 
-  // Rota zigue-zagueante calculada de forma relativa ao usuário
-  const ZIG_ZAG_WAYPOINTS: [number, number][] = [
-    [START_LAT, START_LNG],
-    [START_LAT + 0.003, START_LNG - 0.002],
-    [START_LAT + 0.004, START_LNG + 0.003],
-    [START_LAT + 0.001, START_LNG + 0.005],
-    [START_LAT + 0.006, START_LNG + 0.008],
-    [START_LAT + 0.003, START_LNG + 0.011],
-    [START_LAT + 0.008, START_LNG + 0.013],
-    [START_LAT + 0.007, START_LNG + 0.017],
-    [userCoords.lat, userCoords.lng], // Destino final exato do cliente!
-  ];
+  return (
+    <div className="relative w-full h-full">
+      {geoError && (
+        <div className="absolute top-2 left-2 right-2 z-[1000] bg-amber-950/90 border border-amber-700/60 text-amber-200 text-[10px] px-2.5 py-1 rounded-lg text-center backdrop-blur-md">
+          ⚠️ {geoError}
+        </div>
+      )}
 
-  const getInterpolatedPosition = (prog: number): [number, number] => {
-    const totalSegments = ZIG_ZAG_WAYPOINTS.length - 1;
-    const factor = (prog / 100) * totalSegments;
-    const index = Math.floor(factor);
-    const segmentProgress = factor - index;
+      <MapContainer
+        center={userLocation}
+        zoom={15}
+        scrollWheelZoom={false}
+        className="w-full h-full z-0 rounded-2xl"
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
 
-    if (index >= totalSegments) return ZIG_ZAG_WAYPOINTS[totalSegments];
+        <RecenterAutomap lat={userLocation[0]} lng={userLocation[1]} />
 
-    const [lat1, lng1] = ZIG_ZAG_WAYPOINTS[index];
-    const [lat2, lng2] = ZIG_ZAG_WAYPOINTS[index + 1];
-
-    const currentLat = lat1 + (lat2 - lat1) * segmentProgress;
-    const currentLng = lng1 + (lng2 - lng1) * segmentProgress;
-
-    return [currentLat, currentLng];
-  };
-
-  useEffect(() => {
-    if (!mapContainerRef.current) return;
-
-    // Se o mapa já existir, limpa para reinstanciar com as novas coordenadas do GPS
-    if (mapRef.current) {
-      mapRef.current.remove();
-      mapRef.current = null;
-    }
-
-    const map = L.map(mapContainerRef.current, {
-      zoomControl: false,
-      attributionControl: false,
-    }).setView([userCoords.lat, userCoords.lng], 14);
-
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      maxZoom: 19,
-    }).addTo(map);
-
-    const polyline = L.polyline(ZIG_ZAG_WAYPOINTS, {
-      color: '#c084fc',
-      weight: 4,
-      opacity: 0.9,
-      dashArray: '6, 6',
-    }).addTo(map);
-
-    const cleitonIcon = L.divIcon({
-      className: 'custom-cleiton-icon',
-      html: `<div style="
-        font-size: 22px; 
-        background: #130a2a; 
-        border: 2px solid #c084fc; 
-        border-radius: 50%; 
-        width: 40px; 
-        height: 40px; 
-        display: flex; 
-        align-items: center; 
-        justify-content: center; 
-        box-shadow: 0 0 12px #a855f7;
-      ">🛵</div>`,
-      iconSize: [40, 40],
-      iconAnchor: [20, 20],
-    });
-
-    const storeIcon = L.divIcon({
-      className: 'custom-store-icon',
-      html: `<div style="font-size: 16px; background: #090415; border: 1px solid #7e22ce; border-radius: 10px; padding: 4px; box-shadow: 0 0 8px rgba(168,85,247,0.5);">🏪</div>`,
-      iconSize: [28, 28],
-      iconAnchor: [14, 14],
-    });
-
-    const homeIcon = L.divIcon({
-      className: 'custom-home-icon',
-      html: `<div style="font-size: 16px; background: #090415; border: 1px solid #10b981; border-radius: 10px; padding: 4px; box-shadow: 0 0 8px rgba(16,185,129,0.5);">📍</div>`,
-      iconSize: [28, 28],
-      iconAnchor: [14, 14],
-    });
-
-    L.marker(ZIG_ZAG_WAYPOINTS[0], { icon: storeIcon }).addTo(map);
-    L.marker(ZIG_ZAG_WAYPOINTS[ZIG_ZAG_WAYPOINTS.length - 1], { icon: homeIcon }).addTo(map);
-
-    const marker = L.marker(ZIG_ZAG_WAYPOINTS[0], { icon: cleitonIcon }).addTo(map);
-    markerRef.current = marker;
-
-    map.fitBounds(polyline.getBounds(), { padding: [25, 25] });
-    mapRef.current = map;
-
-    setTimeout(() => {
-      map.invalidateSize();
-    }, 200);
-  }, [userCoords]); // Re-executa se as coordenadas de GPS mudarem
-
-  useEffect(() => {
-    if (markerRef.current && mapRef.current) {
-      const newPos = getInterpolatedPosition(progress);
-      markerRef.current.setLatLng(newPos);
-      mapRef.current.panTo(newPos, { animate: true, duration: 1 });
-      mapRef.current.invalidateSize();
-    }
-  }, [progress]);
-
-  return <div ref={mapContainerRef} className="w-full h-full rounded-2xl z-10" style={{ minHeight: '260px' }} />;
+        {/* Marcador da Moto do Cleiton */}
+        <Marker position={[cleitonLat, cleitonLng]} icon={cleitonIcon}>
+          <Popup>
+            <span className="font-bold text-xs">Cleiton em Ação 🛵</span>
+          </Popup>
+        </Marker>
+      </MapContainer>
+    </div>
+  );
 }
