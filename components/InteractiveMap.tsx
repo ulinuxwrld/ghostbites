@@ -5,7 +5,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Fix de ícones do Leaflet para o ecossistema Next.js
+// Fix essencial para os ícones padrão do Leaflet no Next.js
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -21,7 +21,7 @@ const cleitonIcon = L.icon({
   popupAnchor: [0, -10],
 });
 
-// Controlador de mapa: garante que o contêiner redesenhe e centralize suavemente
+// Componente para recalcular e recentralizar o mapa suavemente
 function MapController({ lat, lng }: { lat: number; lng: number }) {
   const map = useMap();
 
@@ -39,7 +39,7 @@ function MapController({ lat, lng }: { lat: number; lng: number }) {
 }
 
 export default function InteractiveMap({ progress }: { progress: number }) {
-  // Posição base padrão (Santos - SP)
+  // Localização inicial padrão (Santos - SP)
   const [userLocation, setUserLocation] = useState<[number, number]>([-23.9608, -46.3339]);
 
   useEffect(() => {
@@ -49,21 +49,19 @@ export default function InteractiveMap({ progress }: { progress: number }) {
           const { latitude, longitude } = position.coords;
           setUserLocation([latitude, longitude]);
         },
-        () => {
-          // Em caso de negação ou falha, mantém a posição padrão suavemente
-        },
+        () => {},
         { timeout: 3000 }
       );
     }
   }, []);
 
-  // Movimentação progressiva do Cleiton em direção ao usuário
+  // Animação de movimento do Cleiton
   const startOffset = 0.008;
   const cleitonLat = userLocation[0] + (1 - progress / 100) * startOffset;
   const cleitonLng = userLocation[1] + (1 - progress / 100) * startOffset;
 
   return (
-    <div style={{ width: '100%', height: '100%', minHeight: '256px', position: 'relative' }}>
+    <div style={{ width: '100%', height: '100%', minHeight: '260px', position: 'relative' }}>
       <MapContainer
         center={userLocation}
         zoom={15}
