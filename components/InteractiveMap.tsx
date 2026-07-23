@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 
-// Corrigir ícones padrão do Leaflet no Next.js
+// Ajuste essencial para os marcadores do Leaflet no Next.js
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -21,26 +20,31 @@ const cleitonIcon = L.icon({
   popupAnchor: [0, -10],
 });
 
-// Helper essencial que resolve o problema do mapa cinza/sem altura
+// Helper de recálculo dinâmico quando a view muda
 function MapController({ lat, lng }: { lat: number; lng: number }) {
   const map = useMap();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      map.invalidateSize();
-    }, 200);
+    // Redesenha a grade do mapa após 100ms e 300ms para evitar tela em branco
+    map.invalidateSize();
+    const t1 = setTimeout(() => map.invalidateSize(), 100);
+    const t2 = setTimeout(() => map.invalidateSize(), 300);
 
     map.flyTo([lat, lng], 15, { duration: 1 });
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
   }, [lat, lng, map]);
 
   return null;
 }
 
 export default function InteractiveMap({ progress }: { progress: number }) {
-  // Posição inicial em Santos - SP
+  // Posição base em Santos - SP
   const [userLocation, setUserLocation] = useState<[number, number]>([-23.9608, -46.3339]);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'geolocation' in navigator) {
@@ -55,18 +59,22 @@ export default function InteractiveMap({ progress }: { progress: number }) {
     }
   }, []);
 
-  // Animação de movimento do Cleiton
+  // Movimentação do Cleiton aproximando-se do destino
   const startOffset = 0.008;
   const cleitonLat = userLocation[0] + (1 - progress / 100) * startOffset;
   const cleitonLng = userLocation[1] + (1 - progress / 100) * startOffset;
 
   return (
-    <div style={{ width: '100%', height: '100%', minHeight: '256px', position: 'relative' }}>
+    <div 
+      ref={containerRef} 
+      className="w-full h-full min-h-[256px] relative" 
+      style={{ minHeight: '256px' }}
+    >
       <MapContainer
         center={userLocation}
         zoom={15}
         scrollWheelZoom={false}
-        style={{ width: '100%', height: '100%', borderRadius: '1rem', zIndex: 1 }}
+        style={{ width: '100%', height: '100%', minHeight: '256px', borderRadius: '1rem', zIndex: 1 }}
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
