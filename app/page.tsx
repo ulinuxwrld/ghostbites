@@ -4,18 +4,18 @@ import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { Analytics } from '@vercel/analytics/react';
 
-// Carregamento dinâmico do mapa sem SSR (Server-Side Rendering)
+// Importação dinâmica do mapa para evitar erros de renderização no servidor (SSR)
 const InteractiveMap = dynamic(() => import('@/components/InteractiveMap'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full min-h-[260px] flex flex-col items-center justify-center bg-purple-950/30 text-purple-300 text-xs animate-pulse rounded-2xl border border-purple-800/40">
+    <div className="w-full h-[280px] flex flex-col items-center justify-center bg-purple-950/30 text-purple-300 text-xs animate-pulse rounded-2xl border border-purple-800/40">
       <span className="text-2xl mb-1">🛵</span>
-      <span>Localizando moto do Cleiton no GPS...</span>
+      <span>Sintonizando GPS do Cleiton...</span>
     </div>
   ),
 });
 
-// Dados dos Restaurantes Parceiros GhostBites
+// Lista de Restaurantes Parceiros do GhostBites
 const RESTAURANTS = [
   {
     id: 'rest-1',
@@ -25,9 +25,9 @@ const RESTAURANTS = [
     time: '25-35 min',
     image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&auto=format&fit=crop&q=80',
     menu: [
-      { id: 'm1', name: 'Phantom Double Cheese', price: 34.90, desc: 'Dois hambúrgueres 150g, queijo cheddar artesanal derretido e molho especial.', img: 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=300&auto=format&fit=crop&q=80' },
-      { id: 'm2', name: 'Batata Ectoplasma', price: 19.90, desc: 'Batatas rústicas crocantes com farofa de bacon e molho verde secreto.', img: 'https://images.unsplash.com/photo-1576107232684-1279f3908594?w=300&auto=format&fit=crop&q=80' },
-      { id: 'm3', name: 'Milkshake Espectro OREO', price: 18.00, desc: 'Cremoso, com pedaços de biscoito e calda de chocolate belga.', img: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=300&auto=format&fit=crop&q=80' },
+      { id: 'm1', name: 'Phantom Double Cheese', price: 34.90, desc: 'Dois hambúrgueres de 150g, queijo cheddar derretido e molho especial.', img: 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=300&auto=format&fit=crop&q=80' },
+      { id: 'm2', name: 'Batata Ectoplasma', price: 19.90, desc: 'Batatas rústicas crocantes com farofa de bacon e molho verde da casa.', img: 'https://images.unsplash.com/photo-1576107232684-1279f3908594?w=300&auto=format&fit=crop&q=80' },
+      { id: 'm3', name: 'Milkshake Espectro OREO', price: 18.00, desc: 'Cremoso, com pedaços de biscoito OREO e calda de chocolate belga.', img: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=300&auto=format&fit=crop&q=80' },
     ]
   },
   {
@@ -39,7 +39,7 @@ const RESTAURANTS = [
     image: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=600&auto=format&fit=crop&q=80',
     menu: [
       { id: 'm4', name: 'Pizza Calabresa Infernal', price: 49.90, desc: 'Massa fermentada 48h, calabresa fatiada, cebola roxa e pimenta suave.', img: 'https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?w=300&auto=format&fit=crop&q=80' },
-      { id: 'm5', name: 'Pizza Quatro Queijos Místicos', price: 54.90, desc: 'Mussarela, gorgonzola, parmesão e catupiry verdadeiro.', img: 'https://images.unsplash.com/photo-1573821663912-569905455b1c?w=300&auto=format&fit=crop&q=80' },
+      { id: 'm5', name: 'Pizza Quatro Queijos Místicos', price: 54.90, desc: 'Mussarela, gorgonzola, parmesão e catupiry de verdade.', img: 'https://images.unsplash.com/photo-1573821663912-569905455b1c?w=300&auto=format&fit=crop&q=80' },
     ]
   },
   {
@@ -50,13 +50,13 @@ const RESTAURANTS = [
     time: '35-45 min',
     image: 'https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=600&auto=format&fit=crop&q=80',
     menu: [
-      { id: 'm6', name: 'Combo Dark Roll (16 pcs)', price: 59.90, desc: 'Hot rolls crocantes com cream cheese, salmão e tarê da casa.', img: 'https://images.unsplash.com/photo-1611143669185-af224c5e3252?w=300&auto=format&fit=crop&q=80' },
-      { id: 'm7', name: 'Temaki Salmão Especial', price: 28.90, desc: 'Salmão fresco batido com cebolinha e casquinha super crocante.', img: 'https://images.unsplash.com/photo-1553621042-f6e147245754?w=300&auto=format&fit=crop&q=80' },
+      { id: 'm6', name: 'Combo Dark Roll (16 pcs)', price: 59.90, desc: 'Hot rolls crocantes com cream cheese, salmão fresco e molho tarê.', img: 'https://images.unsplash.com/photo-1611143669185-af224c5e3252?w=300&auto=format&fit=crop&q=80' },
+      { id: 'm7', name: 'Temaki Salmão Especial', price: 28.90, desc: 'Salmão fresco batido com cebolinha e casquinha de nori bem crocante.', img: 'https://images.unsplash.com/photo-1553621042-f6e147245754?w=300&auto=format&fit=crop&q=80' },
     ]
   }
 ];
 
-// Configuração das Rotas e Diálogos do Cleiton
+// Modos e Rotas de Entrega do Cleiton
 type RouteOption = {
   id: 'standard' | 'express' | 'peak';
   label: string;
@@ -74,11 +74,11 @@ const ROUTE_CONFIGS: Record<string, RouteOption> = {
     price: 6.00,
     badge: '🚀 Rápida e Segura',
     dialogues: [
-      "Cleiton acabou de ligar a moto! O motor até engasgou de emoção.",
-      "Cleiton pegou a via principal. Tá costurando o trânsito como um profissional!",
-      "Cleiton deu uma buzinada amigável na rua. Tudo sob controle!",
-      "Cleiton avistou seu endereço. Preparando para encostar a moto!",
-      "Cleiton tá na sua porta! Pode pegar o prato!"
+      "Cleiton acabou de ligar a moto! O motor deu aquela engasgada estilosa.",
+      "Cleiton pegou a via principal. Tá costurando o trânsito no talento!",
+      "Cleiton deu uma buzinada pra um doguinho no caminho. Tudo tranquilo!",
+      "Cleiton avistou o seu endereço. Preparando para encostar a moto!",
+      "Cleiton tá na sua porta! Pega o prato que a comida chegou!"
     ]
   },
   express: {
@@ -89,9 +89,9 @@ const ROUTE_CONFIGS: Record<string, RouteOption> = {
     badge: '⚡ Modo Trovão',
     dialogues: [
       "Cleiton ativou o modo turbo! Segura a fome!",
-      "Cleiton cortou caminho por um atalho secreto que só ele conhece!",
-      "Cleiton acelerou fundo na reta! Lanche voando quentinho!",
-      "Cleiton já tá no seu bairro! Escutou o ronco da moto?",
+      "Cleiton cortou caminho por um atalho secreto no beco!",
+      "Cleiton acelerou na reta! O lanche vai chegar pegando fogo!",
+      "Cleiton já entrou na sua rua! Escutou o ronco da moto?",
       "Chegou em tempo recorde! Cleiton merece o troféu do mês!"
     ]
   },
@@ -102,11 +102,11 @@ const ROUTE_CONFIGS: Record<string, RouteOption> = {
     price: 9.00,
     badge: '🌧️ Trânsito Pesado',
     dialogues: [
-      "Cleiton tá no semáforo, mas a bag tá 100% selada e aquecida!",
-      "Cleiton desviou de uma poça d'água na manha. Pilotagem nota 10!",
-      "Trânsito parado, mas o Cleiton tá avançando entre os carros no talento!",
+      "Cleiton parou no sinal, mas a bag tá selada e aquecida!",
+      "Cleiton desviou de uma poça com maestria. Pilotagem nível F1!",
+      "Trânsito parado, mas o Cleiton tá avançando entre os carros!",
       "Cleiton saiu do engarrafamento! A reta final é toda dele!",
-      "Desafiou a chuva e o trânsito! Pedido entregue com segurança!"
+      "Desafiou a chuva e o trânsito! Pedido entregue em segurança!"
     ]
   }
 };
@@ -122,7 +122,7 @@ export default function GhostBitesPage() {
   const [currentDialogue, setCurrentDialogue] = useState('');
   const [isDelivered, setIsDelivered] = useState(false);
 
-  // Manipulação do Carrinho
+  // Ações do Carrinho
   const addToCart = (item: { id: string; name: string; price: number }) => {
     setCart((prev) => {
       const existing = prev.find((i) => i.id === item.id);
@@ -183,7 +183,7 @@ export default function GhostBitesPage() {
     <main className="min-h-screen bg-[#090415] text-purple-100 font-sans pb-16 select-none">
       <Analytics />
 
-      {/* HEADER PRINCIPAL */}
+      {/* HEADER DA APLICAÇÃO */}
       <header className="sticky top-0 z-50 bg-[#090415]/90 backdrop-blur-md border-b border-purple-900/40 px-4 py-3.5 flex justify-between items-center shadow-lg shadow-purple-950/50">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentView('restaurants')}>
           <span className="text-2xl">👻</span>
@@ -212,12 +212,12 @@ export default function GhostBitesPage() {
 
       <div className="max-w-md mx-auto px-4 pt-5">
 
-        {/* VISTA 1: LISTA DE RESTAURANTES */}
+        {/* TELA 1: LISTA DE RESTAURANTES (CARDS COM IMAGEM) */}
         {currentView === 'restaurants' && (
           <div className="space-y-4">
             <div className="bg-gradient-to-r from-purple-900/40 via-fuchsia-900/20 to-indigo-900/30 p-4 rounded-2xl border border-purple-800/40">
-              <h2 className="text-base font-bold text-purple-200">Restaurantes Disponíveis 🍽️</h2>
-              <p className="text-xs text-purple-300/70 mt-0.5">Selecione onde você deseja pedir hoje.</p>
+              <h2 className="text-base font-bold text-purple-200">Restaurantes Parceiros 🍽️</h2>
+              <p className="text-xs text-purple-300/70 mt-0.5">Escolha um lugar e monte o seu pedido.</p>
             </div>
 
             <div className="grid gap-4">
@@ -255,7 +255,7 @@ export default function GhostBitesPage() {
           </div>
         )}
 
-        {/* VISTA 2: CARDÁPIO DO RESTAURANTE SELECIONADO */}
+        {/* TELA 2: CARDÁPIO DO RESTAURANTE */}
         {currentView === 'menu' && (
           <div className="space-y-4">
             <button
@@ -326,7 +326,7 @@ export default function GhostBitesPage() {
           </div>
         )}
 
-        {/* VISTA 3: CARRINHO E ROTAS */}
+        {/* TELA 3: CARRINHO E SELEÇÃO DE ROTA */}
         {currentView === 'cart' && (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
@@ -342,12 +342,12 @@ export default function GhostBitesPage() {
             {cart.length === 0 ? (
               <div className="text-center py-10 bg-purple-950/20 rounded-2xl border border-purple-900/30">
                 <span className="text-3xl">👻</span>
-                <p className="text-xs text-purple-300/70 mt-2">Seu carrinho está sem nenhum item.</p>
+                <p className="text-xs text-purple-300/70 mt-2">Seu carrinho está vazio.</p>
                 <button
                   onClick={() => setCurrentView('restaurants')}
                   className="mt-3 bg-purple-800/60 text-xs font-bold px-3.5 py-1.5 rounded-xl"
                 >
-                  Escolher Restaurante
+                  Ver Restaurantes
                 </button>
               </div>
             ) : (
@@ -380,10 +380,10 @@ export default function GhostBitesPage() {
                   ))}
                 </div>
 
-                {/* ESCOLHA DA ROTA DO CLEITON */}
+                {/* OPÇÕES DE ENTREGA DO CLEITON */}
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-purple-300 block">
-                    Escolha o Estilo de Entrega do Cleiton 🛵:
+                    Escolha o Modo de Entrega do Cleiton 🛵:
                   </label>
                   <div className="grid gap-2">
                     {Object.values(ROUTE_CONFIGS).map((route) => (
@@ -415,18 +415,18 @@ export default function GhostBitesPage() {
                   </div>
                 </div>
 
-                {/* VALOR TOTAL */}
+                {/* RESUMO DE VALORES */}
                 <div className="bg-purple-950/60 border border-purple-800/50 rounded-2xl p-3.5 space-y-1.5 text-xs">
                   <div className="flex justify-between text-purple-300">
                     <span>Subtotal:</span>
                     <span>R$ {subtotal.toFixed(2).replace('.', ',')}</span>
                   </div>
                   <div className="flex justify-between text-purple-300">
-                    <span>Entrega ({selectedRoute.label}):</span>
+                    <span>Taxa de Entrega ({selectedRoute.label}):</span>
                     <span>R$ {selectedRoute.price.toFixed(2).replace('.', ',')}</span>
                   </div>
                   <div className="border-t border-purple-800/40 pt-2 flex justify-between font-black text-xs text-purple-100">
-                    <span>Total:</span>
+                    <span>Total Final:</span>
                     <span className="text-fuchsia-400 text-sm">R$ {total.toFixed(2).replace('.', ',')}</span>
                   </div>
                 </div>
@@ -442,7 +442,7 @@ export default function GhostBitesPage() {
           </div>
         )}
 
-        {/* VISTA 4: RASTREIO NO MAPA COM CLEITON */}
+        {/* TELA 4: RASTREIO E MAPA AO VIVO DO CLEITON */}
         {currentView === 'delivery' && (
           <div className="space-y-4">
             <div className="flex justify-between items-center">
@@ -459,8 +459,8 @@ export default function GhostBitesPage() {
               </span>
             </div>
 
-            {/* CONTAINER DO MAPA INTERATIVO */}
-            <div className="w-full h-64 rounded-2xl overflow-hidden border border-purple-800/50 shadow-xl shadow-purple-950/80 relative bg-[#090415]">
+            {/* MAPA INTERATIVO ENVELOPADO COM ALTURA FIXA */}
+            <div className="w-full h-[280px] rounded-2xl overflow-hidden border border-purple-800/50 shadow-xl shadow-purple-950/80 relative bg-[#090415]">
               <InteractiveMap progress={progress} />
             </div>
 
@@ -489,8 +489,8 @@ export default function GhostBitesPage() {
             {isDelivered && (
               <div className="bg-emerald-950/40 border border-emerald-800/50 p-4 rounded-2xl text-center space-y-2">
                 <span className="text-2xl block">🎉🍔</span>
-                <h3 className="font-bold text-xs text-emerald-200">Pedido Entregue!</h3>
-                <p className="text-[11px] text-emerald-300/80">Bom apetite! Cleiton já está a caminho da próxima entrega.</p>
+                <h3 className="font-bold text-xs text-emerald-200">Pedido Entregue com Sucesso!</h3>
+                <p className="text-[11px] text-emerald-300/80">Bom apetite! O Cleiton já está a caminho do próximo rango.</p>
                 <button
                   onClick={() => {
                     setCart([]);
@@ -498,7 +498,7 @@ export default function GhostBitesPage() {
                   }}
                   className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-lg active:scale-95"
                 >
-                  Novo Pedido
+                  Fazer Novo Pedido
                 </button>
               </div>
             )}
