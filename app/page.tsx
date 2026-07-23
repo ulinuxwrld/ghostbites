@@ -21,6 +21,12 @@ interface CartItem {
 
 type AppView = 'browse' | 'cart' | 'delivery';
 
+interface RouteConfig {
+  label: string;
+  distance: string;
+  stepTimings: [number, number, number]; // [Tempo até Passo 2, Passo 3, Passo 4 em ms]
+}
+
 const CATEGORIES = [
   { name: 'Todos', icon: '✨', desc: 'Todos os restaurantes' },
   { name: 'Hambúrgueres', icon: '🍔', desc: 'Sanduíches & Dopamina' },
@@ -33,6 +39,25 @@ const CATEGORIES = [
   { name: 'Açaí', icon: '🍧', desc: 'Copos & Tigelas' },
   { name: 'Fit', icon: '🥗', desc: 'Alimentação leve' },
   { name: 'Churrasco', icon: '🥩', desc: 'Carnes defumadas' },
+];
+
+// VARIANTES DE ROTAS DO CLEITON (DISTÂNCIA E TEMPOS DINÂMICOS)
+const ROUTE_VARIATIONS: RouteConfig[] = [
+  {
+    label: "Entrega Expressa ⚡",
+    distance: "1.2 km",
+    stepTimings: [2500, 5000, 8000], // Rota rápida (~8s total)
+  },
+  {
+    label: "Rota Padrão 🛵",
+    distance: "3.4 km",
+    stepTimings: [4000, 8000, 12000], // Rota média (~12s total)
+  },
+  {
+    label: "Horário de Pico 🚦",
+    distance: "5.8 km",
+    stepTimings: [6000, 12000, 18000], // Rota longa (~18s total)
+  },
 ];
 
 // BANCO DE FRASES VARIADAS DO CLEITON
@@ -74,7 +99,10 @@ export default function GhostBitesHome() {
   const [deliveryStep, setDeliveryStep] = useState(1);
   const [progress, setProgress] = useState(0);
 
-  // ESTADO PARA ARMAZENAR AS FRASES DA CORRIDA ATUAL
+  // ROTA ATIVA DA CORRIDA ATUAL
+  const [activeRoute, setActiveRoute] = useState<RouteConfig>(ROUTE_VARIATIONS[1]);
+
+  // FRASES DA CORRIDA ATUAL
   const [currentMessages, setCurrentMessages] = useState({
     step1: CLEITON_MESSAGES.step1[0],
     step2: CLEITON_MESSAGES.step2[0],
@@ -104,9 +132,8 @@ export default function GhostBitesHome() {
 
   const totalItems = cart.reduce((sum, i) => sum + i.quantity, 0);
 
-  // CÁLCULO DINÂMICO DO SUBTOTAL COM BASE NOS ITENS DO CARRINHO
+  // CÁLCULO DINÂMICO DE PREÇOS
   const calculatedSubtotal = cart.reduce((sum, cartItem) => {
-    // Utiliza o preço do item se existir no objeto, ou atribui um valor padrão de R$ 35,00
     const itemPrice = (cartItem.item as any).price || 35;
     return sum + itemPrice * cartItem.quantity;
   }, 0);
@@ -115,12 +142,16 @@ export default function GhostBitesHome() {
     return cart.find((i) => i.item.id === itemId)?.quantity || 0;
   };
 
-  const getRandomItem = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
+  const getRandomItem = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
   const handleConfirmOrder = () => {
     if (cart.length === 0) return;
 
-    // Sorteia frases novas para cada etapa desta corrida
+    // Sorteia uma nova rota com tempo/distância específicos
+    const randomRoute = getRandomItem(ROUTE_VARIATIONS);
+    setActiveRoute(randomRoute);
+
+    // Sorteia frases para esta entrega
     setCurrentMessages({
       step1: getRandomItem(CLEITON_MESSAGES.step1),
       step2: getRandomItem(CLEITON_MESSAGES.step2),
@@ -133,30 +164,33 @@ export default function GhostBitesHome() {
     setProgress(5);
   };
 
+  // RASTREIO DE ENTREGA COM TEMPOS DINÂMICOS BASEADOS NA ROTA SORTEADA
   useEffect(() => {
     if (currentView !== 'delivery') return;
+
+    const [t1, t2, t3] = activeRoute.stepTimings;
 
     const timer1 = setTimeout(() => {
       setDeliveryStep(2);
       setProgress(35);
-    }, 4000);
+    }, t1);
 
     const timer2 = setTimeout(() => {
       setDeliveryStep(3);
       setProgress(70);
-    }, 8000);
+    }, t2);
 
     const timer3 = setTimeout(() => {
       setDeliveryStep(4);
       setProgress(100);
-    }, 12000);
+    }, t3);
 
     return () => {
       clearTimeout(timer1);
       clearTimeout(timer2);
       clearTimeout(timer3);
     };
-  }, [currentView]);
+  }, [currentView, activeRoute]);
 
   const resetApp = () => {
     setCart([]);
@@ -182,7 +216,9 @@ export default function GhostBitesHome() {
         <div className="max-w-md w-full bg-[#130a2a]/95 backdrop-blur-xl border border-purple-800/40 rounded-3xl p-5 shadow-2xl space-y-4 glow-purple">
           <div className="flex justify-between items-center border-b border-purple-900/40 pb-3">
             <div>
-              <span className="text-[10px] font-black text-purple-400 uppercase tracking-widest">Rastreio em Tempo Real</span>
+              <span className="text-[10px] font-black text-purple-400 uppercase tracking-widest">
+                {activeRoute.label} • {activeRoute.distance}
+              </span>
               <h2 className="text-base font-black text-white tracking-tight">Entrega do Cleiton 🛵</h2>
             </div>
             <span className="text-xs bg-purple-950/80 text-purple-200 font-bold px-3 py-1 rounded-full border border-purple-700/50">
