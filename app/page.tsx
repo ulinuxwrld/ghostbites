@@ -104,6 +104,13 @@ export default function GhostBitesHome() {
 
   const totalItems = cart.reduce((sum, i) => sum + i.quantity, 0);
 
+  // CÁLCULO DINÂMICO DO SUBTOTAL COM BASE NOS ITENS DO CARRINHO
+  const calculatedSubtotal = cart.reduce((sum, cartItem) => {
+    // Utiliza o preço do item se existir no objeto, ou atribui um valor padrão de R$ 35,00
+    const itemPrice = (cartItem.item as any).price || 35;
+    return sum + itemPrice * cartItem.quantity;
+  }, 0);
+
   const getItemQuantity = (itemId: string) => {
     return cart.find((i) => i.item.id === itemId)?.quantity || 0;
   };
@@ -258,31 +265,39 @@ export default function GhostBitesHome() {
 
           <div className="space-y-2">
             <h3 className="text-[11px] font-black uppercase tracking-wider text-purple-400">Itens Selecionados</h3>
-            {cart.map(({ item, quantity }) => (
-              <div key={item.id} className="p-3.5 bg-[#130a2a]/80 border border-purple-900/40 rounded-2xl flex justify-between items-center gap-3 shadow-sm">
-                <div className="flex-1">
-                  <h4 className="font-bold text-xs text-white tracking-tight">{item.name}</h4>
-                  <p className="text-[11px] text-purple-300/60 line-clamp-1 mt-0.5">{item.description}</p>
-                  <span className="text-xs font-black text-emerald-400 mt-1 block">R$ 0,00</span>
-                </div>
+            {cart.map(({ item, quantity }) => {
+              const unitPrice = (item as any).price || 35;
+              return (
+                <div key={item.id} className="p-3.5 bg-[#130a2a]/80 border border-purple-900/40 rounded-2xl flex justify-between items-center gap-3 shadow-sm">
+                  <div className="flex-1">
+                    <h4 className="font-bold text-xs text-white tracking-tight">{item.name}</h4>
+                    <p className="text-[11px] text-purple-300/60 line-clamp-1 mt-0.5">{item.description}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-xs font-black text-emerald-400">R$ 0,00</span>
+                      <span className="text-[10px] text-purple-300/40 line-through">
+                        (R$ {(unitPrice * quantity).toFixed(2).replace('.', ',')})
+                      </span>
+                    </div>
+                  </div>
 
-                <div className="flex items-center gap-2 bg-[#090415] border border-purple-800/50 p-1 rounded-xl shrink-0">
-                  <button
-                    onClick={() => removeFromCart(item.id)}
-                    className="w-6 h-6 bg-purple-950 hover:bg-purple-900 text-purple-200 font-bold rounded-lg text-xs"
-                  >
-                    -
-                  </button>
-                  <span className="text-xs font-black px-1 text-purple-200">{quantity}</span>
-                  <button
-                    onClick={() => addToCart(item)}
-                    className="w-6 h-6 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-lg text-xs"
-                  >
-                    +
-                  </button>
+                  <div className="flex items-center gap-2 bg-[#090415] border border-purple-800/50 p-1 rounded-xl shrink-0">
+                    <button
+                      onClick={() => removeFromCart(item.id)}
+                      className="w-6 h-6 bg-purple-950 hover:bg-purple-900 text-purple-200 font-bold rounded-lg text-xs"
+                    >
+                      -
+                    </button>
+                    <span className="text-xs font-black px-1 text-purple-200">{quantity}</span>
+                    <button
+                      onClick={() => addToCart(item)}
+                      className="w-6 h-6 bg-purple-600 hover:bg-purple-500 text-white font-bold rounded-lg text-xs"
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="space-y-1.5">
@@ -299,11 +314,11 @@ export default function GhostBitesHome() {
           <div className="bg-[#130a2a]/90 border border-purple-800/50 rounded-2xl p-4 space-y-2.5 text-xs shadow-lg">
             <div className="flex justify-between text-purple-300/60 font-medium">
               <span>Subtotal simulado:</span>
-              <span className="line-through">R$ 114,80</span>
+              <span className="line-through">R$ {calculatedSubtotal.toFixed(2).replace('.', ',')}</span>
             </div>
             <div className="flex justify-between text-purple-300 font-bold">
               <span>Cupom "DOPAMINA_100":</span>
-              <span className="text-purple-400">- R$ 114,80</span>
+              <span className="text-purple-400">- R$ {calculatedSubtotal.toFixed(2).replace('.', ',')}</span>
             </div>
             <div className="flex justify-between text-purple-300/60 font-medium">
               <span>Taxa de Entrega (Cleiton):</span>
@@ -623,7 +638,9 @@ export default function GhostBitesHome() {
               </span>
               <span className="text-xs font-black tracking-wide">Ver Sacola Fantasma</span>
             </div>
-            <span className="text-xs font-black tracking-wide text-emerald-300">R$ 0,00 →</span>
+            <span className="text-xs font-black tracking-wide text-emerald-300">
+              R$ 0,00 <span className="text-[10px] text-purple-200/60 font-normal line-through ml-1">(Economia: R$ {calculatedSubtotal.toFixed(2).replace('.', ',')})</span> →
+            </span>
           </button>
         </div>
       )}
