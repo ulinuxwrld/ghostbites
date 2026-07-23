@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 
-// Ajuste essencial para os marcadores do Leaflet no Next.js
+// Fix dos ícones nativos do Leaflet para o bundler do Next.js
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -12,7 +12,7 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Ícone da moto do Cleiton
+// Ícone customizado da moto do Cleiton
 const cleitonIcon = L.icon({
   iconUrl: 'https://cdn-icons-png.flaticon.com/512/2972/2972185.png',
   iconSize: [38, 38],
@@ -20,15 +20,15 @@ const cleitonIcon = L.icon({
   popupAnchor: [0, -10],
 });
 
-// Helper de recálculo dinâmico quando a view muda
+// Componente que força o recalculamento das dimensões do mapa quando a view muda
 function MapController({ lat, lng }: { lat: number; lng: number }) {
   const map = useMap();
 
   useEffect(() => {
-    // Redesenha a grade do mapa após 100ms e 300ms para evitar tela em branco
+    // Redesenha as tiles imediatamente e em intervalos curtos de transição de layout
     map.invalidateSize();
-    const t1 = setTimeout(() => map.invalidateSize(), 100);
-    const t2 = setTimeout(() => map.invalidateSize(), 300);
+    const t1 = setTimeout(() => map.invalidateSize(), 150);
+    const t2 = setTimeout(() => map.invalidateSize(), 400);
 
     map.flyTo([lat, lng], 15, { duration: 1 });
 
@@ -42,9 +42,8 @@ function MapController({ lat, lng }: { lat: number; lng: number }) {
 }
 
 export default function InteractiveMap({ progress }: { progress: number }) {
-  // Posição base em Santos - SP
+  // Posição padrão em Santos - SP
   const [userLocation, setUserLocation] = useState<[number, number]>([-23.9608, -46.3339]);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'geolocation' in navigator) {
@@ -59,17 +58,21 @@ export default function InteractiveMap({ progress }: { progress: number }) {
     }
   }, []);
 
-  // Movimentação do Cleiton aproximando-se do destino
+  // Movimento progressivo da moto do Cleiton
   const startOffset = 0.008;
   const cleitonLat = userLocation[0] + (1 - progress / 100) * startOffset;
   const cleitonLng = userLocation[1] + (1 - progress / 100) * startOffset;
 
   return (
-    <div 
-      ref={containerRef} 
-      className="w-full h-full min-h-[256px] relative" 
-      style={{ minHeight: '256px' }}
-    >
+    <div className="w-full h-full min-h-[256px] relative">
+      {/* Injeção direta da folha de estilo via CDN para evitar bloqueios do PostCSS/Tailwind */}
+      <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossOrigin=""
+      />
+
       <MapContainer
         center={userLocation}
         zoom={15}
@@ -85,7 +88,7 @@ export default function InteractiveMap({ progress }: { progress: number }) {
 
         <Marker position={[cleitonLat, cleitonLng]} icon={cleitonIcon}>
           <Popup>
-            <span className="font-bold text-xs text-purple-900">Cleiton em Ação 🛵</span>
+            <span className="font-bold text-xs text-purple-900">Cleiton Reflexivo 🛵</span>
           </Popup>
         </Marker>
       </MapContainer>
